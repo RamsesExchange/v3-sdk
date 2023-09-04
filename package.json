@@ -1,5 +1,5 @@
 {
-  "name": "@ramsesexchange/v3-sdk",
+  "name": "ramsesexchange/v3-sdk",
   "license": "MIT",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/RamsesExchange"
