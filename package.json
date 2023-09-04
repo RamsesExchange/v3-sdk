@@ -1,17 +1,17 @@
 {
-  "name": "@uniswap/v3-sdk",
+  "name": "@RamsesExchange/v3-sdk",
   "license": "MIT",
   "publishConfig": {
-    "access": "public"
+    "registry": "https://npm.pkg.github.com/RamsesExchange"
   },
-  "version": "3.10.0",
+  "version": "3.10.1",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/Uniswap/uniswap-v3-sdk.git",
+  "repository": "https://github.com/RamsesExchange/v3-sdk.git",
   "keywords": [
     "uniswap",
     "ethereum"
