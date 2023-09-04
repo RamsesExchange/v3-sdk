@@ -1,5 +1,5 @@
 {
-  "name": "@RamsesExchange/v3-sdk",
+  "name": "@ramsesexchange/v3-sdk",
   "license": "MIT",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/RamsesExchange"
@@ -11,7 +11,10 @@
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/RamsesExchange/v3-sdk.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RamsesExchange/v3-sdk.git"
+  },
   "keywords": [
     "uniswap",
     "ethereum"
@@ -45,5 +48,10 @@
     "printWidth": 120,
     "semi": false,
     "singleQuote": true
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/RamsesExchange/v3-sdk/issues"
+  },
+  "homepage": "https://github.com/RamsesExchange/v3-sdk#readme",
+  "author": "Alpha"
 }
