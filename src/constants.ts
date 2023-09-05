@@ -13,17 +13,17 @@ export enum FeeAmount {
   COMPLETE = 250,
   LOW = 500,
   MEDIUM = 3000,
-  HIGH = 10000,
+  HIGH = 10000
 }
 
 /**
  * The default factory tick spacings by fee amount.
  */
 export const TICK_SPACINGS: { [amount in FeeAmount]: number } = {
-  [FeeAmount.STABLE]: 0.5,
+  [FeeAmount.STABLE]: 1,
   [FeeAmount.LOWEST]: 1,
   [FeeAmount.COMPLETE]: 5,
   [FeeAmount.LOW]: 10,
   [FeeAmount.MEDIUM]: 60,
-  [FeeAmount.HIGH]: 200,
+  [FeeAmount.HIGH]: 200
 }
