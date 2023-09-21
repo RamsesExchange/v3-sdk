@@ -60,8 +60,8 @@ export class Pool {
     sqrtRatioX96: BigintIsh,
     liquidity: BigintIsh,
     tickCurrent: number,
-    ticks: TickDataProvider | (Tick | TickConstructorArgs)[] = NO_TICK_DATA_PROVIDER_DEFAULT,
-    tickSpacing: number
+    tickSpacing: number,
+    ticks: TickDataProvider | (Tick | TickConstructorArgs)[] = NO_TICK_DATA_PROVIDER_DEFAULT
   ) {
     invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
 
@@ -69,12 +69,12 @@ export class Pool {
     const nextTickSqrtRatioX96 = TickMath.getSqrtRatioAtTick(tickCurrent + 1)
     invariant(
       JSBI.greaterThanOrEqual(JSBI.BigInt(sqrtRatioX96), tickCurrentSqrtRatioX96) &&
-      JSBI.lessThanOrEqual(JSBI.BigInt(sqrtRatioX96), nextTickSqrtRatioX96),
+        JSBI.lessThanOrEqual(JSBI.BigInt(sqrtRatioX96), nextTickSqrtRatioX96),
       'PRICE_BOUNDS'
     )
     this.address = address
-      // always create a copy of the list since we want the pool's tick list to be immutable
-      ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
+    // always create a copy of the list since we want the pool's tick list to be immutable
+    ;[this.token0, this.token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
     this.fee = fee
     this.sqrtRatioX96 = JSBI.BigInt(sqrtRatioX96)
     this.liquidity = JSBI.BigInt(liquidity)
@@ -169,8 +169,8 @@ export class Pool {
         sqrtRatioX96,
         liquidity,
         tickCurrent,
-        this.tickDataProvider,
-        this.tickSpacing
+        this.tickSpacing,
+        this.tickDataProvider
       )
     ]
   }
@@ -205,8 +205,8 @@ export class Pool {
         sqrtRatioX96,
         liquidity,
         tickCurrent,
+        this.tickSpacing,
         this.tickDataProvider,
-        this.tickSpacing
       )
     ]
   }
@@ -256,14 +256,14 @@ export class Pool {
       let step: Partial<StepComputations> = {}
       step.sqrtPriceStartX96 = state.sqrtPriceX96
 
-        // because each iteration of the while loop rounds, we can't optimize this code (relative to the smart contract)
-        // by simply traversing to the next available tick, we instead need to exactly replicate
-        // tickBitmap.nextInitializedTickWithinOneWord
-        ;[step.tickNext, step.initialized] = await this.tickDataProvider.nextInitializedTickWithinOneWord(
-          state.tick,
-          zeroForOne,
-          this.tickSpacing
-        )
+      // because each iteration of the while loop rounds, we can't optimize this code (relative to the smart contract)
+      // by simply traversing to the next available tick, we instead need to exactly replicate
+      // tickBitmap.nextInitializedTickWithinOneWord
+      ;[step.tickNext, step.initialized] = await this.tickDataProvider.nextInitializedTickWithinOneWord(
+        state.tick,
+        zeroForOne,
+        this.tickSpacing
+      )
 
       if (step.tickNext < TickMath.MIN_TICK) {
         step.tickNext = TickMath.MIN_TICK
@@ -272,17 +272,17 @@ export class Pool {
       }
 
       step.sqrtPriceNextX96 = TickMath.getSqrtRatioAtTick(step.tickNext)
-        ;[state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount] = SwapMath.computeSwapStep(
-          state.sqrtPriceX96,
-          (zeroForOne
-            ? JSBI.lessThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
-            : JSBI.greaterThan(step.sqrtPriceNextX96, sqrtPriceLimitX96))
-            ? sqrtPriceLimitX96
-            : step.sqrtPriceNextX96,
-          state.liquidity,
-          state.amountSpecifiedRemaining,
-          this.fee
-        )
+      ;[state.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount] = SwapMath.computeSwapStep(
+        state.sqrtPriceX96,
+        (zeroForOne
+        ? JSBI.lessThan(step.sqrtPriceNextX96, sqrtPriceLimitX96)
+        : JSBI.greaterThan(step.sqrtPriceNextX96, sqrtPriceLimitX96))
+          ? sqrtPriceLimitX96
+          : step.sqrtPriceNextX96,
+        state.liquidity,
+        state.amountSpecifiedRemaining,
+        this.fee
+      )
 
       if (exactInput) {
         state.amountSpecifiedRemaining = JSBI.subtract(

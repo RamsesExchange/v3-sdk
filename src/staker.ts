@@ -69,7 +69,7 @@ export interface WithdrawOptions {
 export abstract class Staker {
   public static INTERFACE: Interface = new Interface(IUniswapV3Staker.abi)
 
-  protected constructor() {}
+  protected constructor() { }
   private static INCENTIVE_KEY_ABI =
     'tuple(address rewardToken, address pool, uint256 startTime, uint256 endTime, address refundee)'
 
@@ -192,11 +192,10 @@ export abstract class Staker {
    * @returns An encoded IncentiveKey to be read by ethers
    */
   private static _encodeIncentiveKey(incentiveKey: IncentiveKey): {} {
-    const { token0, token1, fee } = incentiveKey.pool
     const refundee = validateAndParseAddress(incentiveKey.refundee)
     return {
       rewardToken: incentiveKey.rewardToken.address,
-      pool: Pool.getAddress(token0, token1, fee),
+      pool: incentiveKey.pool.address,
       startTime: toHex(incentiveKey.startTime),
       endTime: toHex(incentiveKey.endTime),
       refundee
