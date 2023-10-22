@@ -251,13 +251,54 @@ export class Position {
     return { amount0: amount0.quotient, amount1: amount1.quotient }
   }
 
-  /**
+    /**
    * Returns the minimum amounts that must be sent in order to mint the amount of liquidity held by the position at
    * the current price for the pool
-   */
-  public get mintAmounts(): Readonly<{ amount0: JSBI; amount1: JSBI }> {
+  **/
+
+  /** RAMSES CORE EDIT (UNTESTED)
+   * [Problem]
+   * A Uniswap V3 position is considered to be 1-sided (100% of amount0 and ZERO of amount1, or viceversa) if the
+   * `tickCurrent` is equal to one of the `tickUpper` or `tickLower` bounds of the minted position.
+   * 
+   * This is perfectly logical and true for every position that has at least a range of `tickspace * 2`.
+   * However, for positions that have EXACTLY range of `1 tickspace`, the above statement is not true, as within the
+   * 1 tickspace range, there is an internal price calculated in the sqrtRatioX96, which is not equal to the `tickCurrent`,
+   * which means there is an actual non-absolute ratio of amount0 and amount1 within the bounds of a 1-tickspace position in the contract state.
+   * 
+   * Uniswap SDK and UI doesn't support this edge case, even though their contract can handle it, because internal slippage
+   * is considered to put the user at risk of being instantly out of range with such a narrow position, so they made it not possible on purpose.
+   * 
+   * [Solution] 
+   * We are handling this special case invididually amounts via `isOneTickRange` condition to make sure it never affects old calculations.
+   * 
+   * [Warning]
+   * User might be out of range instantly if there are zap-ins that modify slightly price because of internal slippage.
+   * (the goal is to calculate ratios at 1-tick size regardless if there's risk of being instantly out of range).
+   * 
+   **/
+
+   public get mintAmounts(): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     if (this._mintAmounts === null) {
-      if (this.pool.tickCurrent < this.tickLower) {
+      const isOneTickRange = this.tickUpper - this.tickLower === 1;
+  
+      if (isOneTickRange && this.pool.tickCurrent === this.tickLower) {
+        // Special handling for 1-tick range internal ratio granularity
+        return {
+          amount0: SqrtPriceMath.getAmount0Delta(
+            this.pool.sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            true
+          ),
+          amount1: SqrtPriceMath.getAmount1Delta(
+            this.pool.sqrtRatioX96,
+            TickMath.getSqrtRatioAtTick(this.tickUpper),
+            this.liquidity,
+            true
+          )
+        };
+      } else if (this.pool.tickCurrent < this.tickLower) {
         return {
           amount0: SqrtPriceMath.getAmount0Delta(
             TickMath.getSqrtRatioAtTick(this.tickLower),
@@ -266,7 +307,7 @@ export class Position {
             true
           ),
           amount1: ZERO
-        }
+        };
       } else if (this.pool.tickCurrent < this.tickUpper) {
         return {
           amount0: SqrtPriceMath.getAmount0Delta(
@@ -281,7 +322,7 @@ export class Position {
             this.liquidity,
             true
           )
-        }
+        };
       } else {
         return {
           amount0: ZERO,
@@ -291,10 +332,11 @@ export class Position {
             this.liquidity,
             true
           )
-        }
+        };
       }
     }
-    return this._mintAmounts
+  
+    return this._mintAmounts;
   }
 
   /**
