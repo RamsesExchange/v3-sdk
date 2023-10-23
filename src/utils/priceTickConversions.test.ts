@@ -88,19 +88,22 @@ describe('priceTickConversions', () => {
   })
 
   describe('#priceToClosestTick', () => {
-    it('USDT/USDC 0.9995', () => {
-      const price = new Price(
-        USDC, 
-        USDT, 
-        '999500', 
-        '1000000' 
-      );
-      expect(priceToClosestTick(price, true)).toEqual(-5);
-    })
+    for (let i = -50; i <= 50; i++) {
+      it(`USDT/USDC ${1 + i / 10000} -> ${i}`, () => {
+        const baseAmount = (1000000 + i * 100).toString();
+        const quoteAmount = '1000000';
+        const price = new Price(
+          USDC,
+          USDT,
+          baseAmount,
+          quoteAmount
+        );
+        expect(priceToClosestTick(price, true)).toEqual(i);
+      });
+    }
 
-
-    it('1800 t0/1 t1', () => {
-      expect(priceToClosestTick(new Price(token1, token0, 1, 1800))).toEqual(-74960)
+    it('USDT/USDC 1.000 -> 0', () => {
+      expect(priceToClosestTick(new Price(USDT, USDC, 1e6, 1e6), true)).toEqual(0)
     })
 
     it('1 t1/1800 t0', () => {

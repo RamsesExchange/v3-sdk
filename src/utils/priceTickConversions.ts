@@ -22,23 +22,8 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
 }
 
 
-/**
- * Returns the tick that is closest in price to the input price
- * @param price for which to return the closest tick
- * @param threshold the maximum allowed percentage difference between the input price and the tick price
- * 
- * [RAMSES CORE EDIT]
- * Currently, this function is extremely strict, it will round to next possible tick strictly if equal or greater.
- * It makes sense because there is no way to partition a tick into smaller ticks, but it is not ideal for our use case.
- * We will test a more lenient version of this function by using 99% as the threshold.
- * That means, for example, if the sqrtRatioX96 of the price 1% greater than the sqrtRatioX96 of the tick, we will round to the next tick.
- * 
- * For example, 0.9400000002 tick if you pass 0.94, it would give 0.93 tick, in this case, it will round to 0.94 tick.
- * 
- * Warning: the 99% arbitrary is risky, it could affect bigger tick positions despite fixing the stable ones. Needs extra testing.
- */
 export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition: boolean = false): number {
-  const threshold = JSBI.BigInt(1); // 99%+ price
+  const threshold = JSBI.BigInt(1); // 99%
 
   const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency);
 
@@ -47,6 +32,7 @@ export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition
     : encodeSqrtRatioX96(price.denominator, price.numerator);
 
   let tick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
+
   const nextTickPrice = tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1);
 
   if (isOneTickPosition) {
@@ -55,8 +41,8 @@ export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition
       ? nextTickPrice.divide(price).subtract(1).multiply(100)
       : price.divide(nextTickPrice).subtract(1).multiply(100);
 
-    // If the price difference is within the threshold, choose the next tick
-    if (Math.abs(Number(priceDifference.toFixed(0))) < Number(threshold.toString())) {
+    // Fixes: 1% within next tick, if priceDifference is 0 use old logic, manual fix case for exact tick 0 --> 1.000
+    if (Math.abs(Number(priceDifference.toFixed(10))) < Number(threshold.toString()) && priceDifference.toFixed(10) !== '0' && price.toSignificant(10) !== '1') {
       tick++;
     } else {
       if (sorted) {
@@ -84,6 +70,3 @@ export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition
 
   return tick;
 }
-
-
-
