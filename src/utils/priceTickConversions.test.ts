@@ -95,7 +95,7 @@ describe('priceTickConversions', () => {
         '999500', 
         '1000000' 
       );
-      expect(priceToClosestTick(price)).toEqual(-5);
+      expect(priceToClosestTick(price, true)).toEqual(-5);
     })
 
 
