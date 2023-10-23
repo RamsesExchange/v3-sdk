@@ -23,39 +23,34 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
 
 
 export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition: boolean = false): number {
-  const threshold = JSBI.BigInt(1); // 99%
-
+  const threshold = JSBI.BigInt(1); 
+  
   const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency);
-
+  
   const sqrtRatioX96 = sorted
-    ? encodeSqrtRatioX96(price.numerator, price.denominator)
-    : encodeSqrtRatioX96(price.denominator, price.numerator);
-
+  ? encodeSqrtRatioX96(price.numerator, price.denominator)
+  : encodeSqrtRatioX96(price.denominator, price.numerator);
+  
   let tick = TickMath.getTickAtSqrtRatio(sqrtRatioX96);
-
+  
   const nextTickPrice = tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1);
-
+ 
   if (isOneTickPosition) {
     // Calculate the percentage difference between the next tick price and the given price
     const priceDifference = sorted 
-      ? nextTickPrice.divide(price).subtract(1).multiply(100)
-      : price.divide(nextTickPrice).subtract(1).multiply(100);
+    ? nextTickPrice.divide(price).subtract(1).multiply(10000)
+    : price.divide(nextTickPrice).subtract(1).multiply(10000);
+    // console.log('tick', tick, 'nextTickPrice', nextTickPrice.toSignificant(10), 'price', price.toSignificant(10), 'priceDifference', priceDifference.toFixed(10), 'threshold', threshold.toString())
 
-    // Fixes: 1% within next tick, if priceDifference is 0 use old logic, manual fix case for exact tick 0 --> 1.000
     if (Math.abs(Number(priceDifference.toFixed(10))) < Number(threshold.toString()) && priceDifference.toFixed(10) !== '0' && price.toSignificant(10) !== '1') {
       tick++;
-    } else {
-      if (sorted) {
-        if (!price.lessThan(nextTickPrice)) {
-          tick++;
-        }
-      } else {
-        if (!price.greaterThan(nextTickPrice)) {
-          tick++;
-        }
-      }
+    } 
+    else if (price.toSignificant(10) === '1') {
+        tick = 0;
     }
-  } else {
+
+    else  {
+    console.log('hi', tick)
     // Original logic
     if (sorted) {
       if (!price.lessThan(nextTickPrice)) {
@@ -64,6 +59,7 @@ export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition
     } else {
       if (!price.greaterThan(nextTickPrice)) {
         tick++;
+       }
       }
     }
   }
