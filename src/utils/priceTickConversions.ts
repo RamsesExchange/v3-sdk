@@ -22,11 +22,24 @@ export function tickToPrice(baseToken: Token, quoteToken: Token, tick: number): 
 }
 
 /**
- * Returns the first tick for which the given price is greater than or equal to the tick price
- * @param price for which to return the closest tick that represents a price less than or equal to the input price,
- * i.e. the price of the returned tick is less than or equal to the input price
+ * Returns the tick that is closest in price to the input price
+ * @param price for which to return the closest tick
+ * @param threshold the maximum allowed percentage difference between the input price and the tick price
+ * 
+ * [RAMSES CORE EDIT]
+ * Currently, this function is extremely strict, it will round to next possible tick strictly if equal or greater.
+ * It makes sense beacuse there is no way to partition a tick into smaller ticks, but it is not ideal for our use case.
+ * We will test a more lenient version of this function by using 95% as the threshold.
+ * That means, for example, if the sqrtRatioX96 of the price 5% greater than the sqrtRatioX96 of the tick, we will round to the next tick.
+ * 
+ * For example, 0.9400000002 tick if you pass 0.94, it would give 0.93 tick, in this case, it will round to 0.94 tick.
+ * 
+ * Warning: the 5% arbitrary is risky, it could affect bigger tick positions despite fixing the stable ones. Needs extra testing.
  */
-export function priceToClosestTick(price: Price<Token, Token>): number {
+
+ export function priceToClosestTick(price: Price<Token, Token>): number {
+  const threshold = JSBI.BigInt(5) // 95%
+
   const sorted = price.baseCurrency.sortsBefore(price.quoteCurrency)
 
   const sqrtRatioX96 = sorted
@@ -35,14 +48,28 @@ export function priceToClosestTick(price: Price<Token, Token>): number {
 
   let tick = TickMath.getTickAtSqrtRatio(sqrtRatioX96)
   const nextTickPrice = tickToPrice(price.baseCurrency, price.quoteCurrency, tick + 1)
-  if (sorted) {
-    if (!price.lessThan(nextTickPrice)) {
-      tick++
-    }
+  
+  // Calculate the percentage difference between the next tick price and the given price
+  const priceDifference = sorted 
+    ? nextTickPrice.divide(price).subtract(1).multiply(100)
+    : price.divide(nextTickPrice).subtract(1).multiply(100);
+
+  // If the price difference is within the threshold, choose the next tick
+  if (Math.abs(Number(priceDifference.toFixed(0))) < threshold) {
+    tick++;
   } else {
-    if (!price.greaterThan(nextTickPrice)) {
-      tick++
+    if (sorted) {
+      if (!price.lessThan(nextTickPrice)) {
+        tick++
+      }
+    } else {
+      if (!price.greaterThan(nextTickPrice)) {
+        tick++
+      }
     }
   }
-  return tick
+
+  return tick;
 }
+
+

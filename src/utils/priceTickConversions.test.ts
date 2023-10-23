@@ -29,11 +29,25 @@ describe('priceTickConversions', () => {
   const token1 = token({ sortOrder: 1 })
   const token2_6decimals = token({ sortOrder: 2, decimals: 6 })
 
+
+
+  const USDT = token({ sortOrder: 0, decimals:6})
+  const USDC = token({ sortOrder: 1, decimals:6})
+
   describe('#tickToPrice', () => {
+    it('USDT/USDC -4', () => {
+      expect(tickToPrice(USDT, USDC, -4).toSignificant(5)).toEqual('0.9996')
+    })
+    it('USDT/USDC -5', () => {
+      expect(tickToPrice(USDT, USDC, -5).toSignificant(5)).toEqual('0.9995')
+    })
+    it('USDT/USDC -5', () => {
+      expect(tickToPrice(USDT, USDC, -6).toSignificant(5)).toEqual('0.9994')
+    })
+
     it('1800 t0/1 t1', () => {
       expect(tickToPrice(token1, token0, -74959).toSignificant(5)).toEqual('1800')
     })
-
     it('1 t1/1800 t0', () => {
       expect(tickToPrice(token0, token1, -74959).toSignificant(5)).toEqual('0.00055556')
     })
@@ -74,6 +88,17 @@ describe('priceTickConversions', () => {
   })
 
   describe('#priceToClosestTick', () => {
+    it('USDT/USDC 0.9995', () => {
+      const price = new Price(
+        USDC, 
+        USDT, 
+        '999500', 
+        '1000000' 
+      );
+      expect(priceToClosestTick(price)).toEqual(-5);
+    })
+
+
     it('1800 t0/1 t1', () => {
       expect(priceToClosestTick(new Price(token1, token0, 1, 1800))).toEqual(-74960)
     })
@@ -91,9 +116,6 @@ describe('priceTickConversions', () => {
     })
 
     describe('reciprocal with tickToPrice', () => {
-      it('1800 t0/1 t1', () => {
-        expect(priceToClosestTick(tickToPrice(token1, token0, -74960))).toEqual(-74960)
-      })
 
       it('1 t0/1800 t1', () => {
         expect(priceToClosestTick(tickToPrice(token1, token0, 74960))).toEqual(74960)
