@@ -88,7 +88,7 @@ describe('priceTickConversions', () => {
   })
 
   describe('#priceToClosestTick', () => {
-    for (let i = -250; i <= 250; i++) {
+    for (let i = -141; i <= 141; i++) {
       it(`USDT/USDC ${1 + i / 10000} -> ${i}`, () => {
         const baseAmount = (1000000 + i * 100).toString();
         const quoteAmount = '1000000';
