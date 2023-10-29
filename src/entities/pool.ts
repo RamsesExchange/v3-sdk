@@ -40,6 +40,7 @@ export class Pool {
 
   private _token0Price?: Price<Token, Token>
   private _token1Price?: Price<Token, Token>
+  private _tickSpacing?: number
 
   public static getAddress(
     tokenA: Token,
@@ -74,7 +75,8 @@ export class Pool {
     sqrtRatioX96: BigintIsh,
     liquidity: BigintIsh,
     tickCurrent: number,
-    ticks: TickDataProvider | (Tick | TickConstructorArgs)[] = NO_TICK_DATA_PROVIDER_DEFAULT
+    ticks: TickDataProvider | (Tick | TickConstructorArgs)[] = NO_TICK_DATA_PROVIDER_DEFAULT,
+    tickSpacing?: number
   ) {
     invariant(Number.isInteger(fee) && fee < 1_000_000, 'FEE')
 
@@ -91,7 +93,10 @@ export class Pool {
     this.sqrtRatioX96 = JSBI.BigInt(sqrtRatioX96)
     this.liquidity = JSBI.BigInt(liquidity)
     this.tickCurrent = tickCurrent
-    this.tickDataProvider = Array.isArray(ticks) ? new TickListDataProvider(ticks, TICK_SPACINGS[fee]) : ticks
+    this._tickSpacing = tickSpacing
+    this.tickDataProvider = Array.isArray(ticks)
+      ? new TickListDataProvider(ticks, tickSpacing ?? TICK_SPACINGS[fee])
+      : ticks
   }
 
   /**
@@ -315,6 +320,6 @@ export class Pool {
   }
 
   public get tickSpacing(): number {
-    return TICK_SPACINGS[this.fee]
+    return this._tickSpacing ?? TICK_SPACINGS[this.fee]
   }
 }
