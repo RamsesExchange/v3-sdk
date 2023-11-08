@@ -292,8 +292,8 @@ export class Position {
             true
           ),
           amount1: SqrtPriceMath.getAmount1Delta(
-            this.pool.sqrtRatioX96,
             TickMath.getSqrtRatioAtTick(this.tickLower),
+            this.pool.sqrtRatioX96,
             this.liquidity,
             true
           )
