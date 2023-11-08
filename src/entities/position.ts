@@ -282,7 +282,7 @@ export class Position {
     if (this._mintAmounts === null) {
       const isOneTickRange = this.tickUpper - this.tickLower === 1
 
-      if (isOneTickRange) {
+      if (isOneTickRange && (this.pool.tickCurrent == this.tickLower || this.pool.tickCurrent == this.tickUpper)) {
         // Special handling for 1-tick range internal ratio granularity
         return {
           amount0: SqrtPriceMath.getAmount0Delta(
