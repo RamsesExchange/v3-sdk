@@ -281,8 +281,10 @@ export class Position {
   public get mintAmounts(): Readonly<{ amount0: JSBI; amount1: JSBI }> {
     if (this._mintAmounts === null) {
       const isOneTickRange = this.tickUpper - this.tickLower === 1
+      const sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(this.tickLower)
+      const sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(this.tickUpper)
 
-      if (isOneTickRange && (this.pool.tickCurrent == this.tickLower || this.pool.tickCurrent == this.tickUpper)) {
+      if (isOneTickRange && this.pool.sqrtRatioX96 >= sqrtRatioAX96 && this.pool.sqrtRatioX96 < sqrtRatioBX96) {
         // Special handling for 1-tick range internal ratio granularity
         return {
           amount0: SqrtPriceMath.getAmount0Delta(
