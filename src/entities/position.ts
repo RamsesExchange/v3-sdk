@@ -284,7 +284,11 @@ export class Position {
       const sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(this.tickLower)
       const sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(this.tickUpper)
 
-      if (isOneTickRange && this.pool.sqrtRatioX96 >= sqrtRatioAX96 && this.pool.sqrtRatioX96 < sqrtRatioBX96) {
+      if (
+        isOneTickRange &&
+        JSBI.greaterThanOrEqual(this.pool.sqrtRatioX96, sqrtRatioAX96) &&
+        JSBI.lessThan(this.pool.sqrtRatioX96, sqrtRatioBX96)
+      ) {
         // Special handling for 1-tick range internal ratio granularity
         return {
           amount0: SqrtPriceMath.getAmount0Delta(
