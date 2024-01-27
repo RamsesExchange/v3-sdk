@@ -13,7 +13,7 @@ import { Position } from './entities/position'
 import { ONE, ZERO } from './internalConstants'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
-import INonfungiblePositionManager from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
+import INonfungiblePositionManagerAbi from './abis/NonfungiblePositionManager.json'
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
 import { Pool } from './entities'
@@ -32,6 +32,11 @@ export interface MintSpecificOptions {
    * Creates pool if not initialized before mint.
    */
   createPool?: boolean
+
+  /**
+   * VeToken to attach to the position at mint.
+   */
+  veTokenId?: number
 }
 
 export interface IncreaseSpecificOptions {
@@ -173,7 +178,7 @@ export interface RemoveLiquidityOptions {
 }
 
 export abstract class NonfungiblePositionManager {
-  public static INTERFACE: Interface = new Interface(INonfungiblePositionManager.abi)
+  public static INTERFACE: Interface = new Interface(INonfungiblePositionManagerAbi)
 
   /**
    * Cannot be constructed.
@@ -241,7 +246,8 @@ export abstract class NonfungiblePositionManager {
             amount0Min,
             amount1Min,
             recipient,
-            deadline
+            deadline,
+            veNFTTokenId: options.veTokenId ?? 0
           }
         ])
       )
