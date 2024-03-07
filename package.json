@@ -1,7 +1,7 @@
 {
   "name": "ramsesexchange-v3-sdk",
   "license": "MIT",
-  "version": "3.14.3",
+  "version": "3.15.2",
   "description": "⚒️ An SDK for building applications on top of Uniswap V3",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

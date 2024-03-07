@@ -173,6 +173,11 @@ export interface RemoveLiquidityOptions {
   burnToken?: boolean
 
   /**
+   * Rewards to be claimed from gauge if the position is being burned.
+   */
+  gaugeRewardTokens?: string[]
+
+  /**
    * The optional permit of the token ID being exited, in case the exit transaction is being sent by an account that does not own the NFT
    */
   permit?: NFTPermitOptions
@@ -434,6 +439,14 @@ export abstract class NonfungiblePositionManager {
 
     if (options.liquidityPercentage.equalTo(ONE)) {
       if (options.burnToken) {
+        if (options.gaugeRewardTokens && options.gaugeRewardTokens.length > 0) {
+          calldatas.push(
+            NonfungiblePositionManager.INTERFACE_NO_BOOST.encodeFunctionData('getReward', [
+              tokenId,
+              options.gaugeRewardTokens
+            ])
+          )
+        }
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))
       }
     } else {
