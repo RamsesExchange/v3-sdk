@@ -14,7 +14,6 @@ import { ONE, ZERO } from './internalConstants'
 import { MethodParameters, toHex } from './utils/calldata'
 import { Interface } from '@ethersproject/abi'
 import INonfungiblePositionManagerAbi from './abis/NonfungiblePositionManager.json'
-import INonfungiblePositionManagerNoBoostAbi from './abis/NonfungiblePositionManagerNoBoost.json'
 import { PermitOptions, SelfPermit } from './selfPermit'
 import { ADDRESS_ZERO } from './constants'
 import { Pool } from './entities'
@@ -190,7 +189,6 @@ export interface RemoveLiquidityOptions {
 
 export abstract class NonfungiblePositionManager {
   public static INTERFACE: Interface = new Interface(INonfungiblePositionManagerAbi)
-  public static INTERFACE_NO_BOOST: Interface = new Interface(INonfungiblePositionManagerNoBoostAbi)
 
   /**
    * Cannot be constructed.
@@ -201,7 +199,7 @@ export abstract class NonfungiblePositionManager {
     return NonfungiblePositionManager.INTERFACE.encodeFunctionData('createAndInitializePoolIfNecessary', [
       pool.token0.address,
       pool.token1.address,
-      pool.fee,
+      pool.tickSpacing,
       toHex(pool.sqrtRatioX96)
     ])
   }
@@ -245,44 +243,23 @@ export abstract class NonfungiblePositionManager {
     if (isMint(options)) {
       const recipient: string = validateAndParseAddress(options.recipient)
 
-      if (options.noBoost) {
-        calldatas.push(
-          NonfungiblePositionManager.INTERFACE_NO_BOOST.encodeFunctionData('mint', [
-            {
-              token0: position.pool.token0.address,
-              token1: position.pool.token1.address,
-              fee: position.pool.fee,
-              tickLower: position.tickLower,
-              tickUpper: position.tickUpper,
-              amount0Desired: toHex(amount0Desired),
-              amount1Desired: toHex(amount1Desired),
-              amount0Min,
-              amount1Min,
-              recipient,
-              deadline
-            }
-          ])
-        )
-      } else {
-        calldatas.push(
-          NonfungiblePositionManager.INTERFACE.encodeFunctionData('mint', [
-            {
-              token0: position.pool.token0.address,
-              token1: position.pool.token1.address,
-              fee: position.pool.fee,
-              tickLower: position.tickLower,
-              tickUpper: position.tickUpper,
-              amount0Desired: toHex(amount0Desired),
-              amount1Desired: toHex(amount1Desired),
-              amount0Min,
-              amount1Min,
-              recipient,
-              deadline,
-              veNFTTokenId: options.veTokenId ?? 0
-            }
-          ])
-        )
-      }
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('mint', [
+          {
+            token0: position.pool.token0.address,
+            token1: position.pool.token1.address,
+            tickSpacing: position.pool.tickSpacing,
+            tickLower: position.tickLower,
+            tickUpper: position.tickUpper,
+            amount0Desired: toHex(amount0Desired),
+            amount1Desired: toHex(amount1Desired),
+            amount0Min,
+            amount1Min,
+            recipient,
+            deadline,
+          }
+        ])
+      )
     } else {
       // increase
       calldatas.push(
@@ -441,10 +418,7 @@ export abstract class NonfungiblePositionManager {
       if (options.burnToken) {
         if (options.gaugeRewardTokens && options.gaugeRewardTokens.length > 0) {
           calldatas.push(
-            NonfungiblePositionManager.INTERFACE_NO_BOOST.encodeFunctionData('getReward', [
-              tokenId,
-              options.gaugeRewardTokens
-            ])
+            NonfungiblePositionManager.INTERFACE.encodeFunctionData('getReward', [tokenId, options.gaugeRewardTokens])
           )
         }
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))

@@ -1,8 +1,8 @@
 import { Interface } from '@ethersproject/abi'
 import { BigintIsh, Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { encodeRouteToPath, MethodParameters, toHex } from './utils'
-import IQuoter from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
-import IQuoterV2 from '@uniswap/swap-router-contracts/artifacts/contracts/lens/QuoterV2.sol/QuoterV2.json'
+import IQuoterAbi from './abis/Quoter.json'
+import IQuoterV2Abi from './abis/QuoterV2.json'
 import { Route } from './entities'
 import invariant from 'tiny-invariant'
 import { FeeAmount } from './constants'
@@ -34,8 +34,8 @@ interface BaseQuoteParams {
  * calldata needed to call the quoter contract.
  */
 export abstract class SwapQuoter {
-  public static V1INTERFACE: Interface = new Interface(IQuoter.abi)
-  public static V2INTERFACE: Interface = new Interface(IQuoterV2.abi)
+  public static V1INTERFACE: Interface = new Interface(IQuoterAbi)
+  public static V2INTERFACE: Interface = new Interface(IQuoterV2Abi)
 
   /**
    * Produces the on-chain method name of the appropriate function within QuoterV2,

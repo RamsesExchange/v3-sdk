@@ -45,13 +45,13 @@ export class Pool {
   public static getAddress(
     tokenA: Token,
     tokenB: Token,
-    fee: FeeAmount,
+    tickSpacing: number,
     initCodeHashManualOverride?: string,
     factoryAddressOverride?: string
   ): string {
     return computePoolAddress({
       factoryAddress: factoryAddressOverride ?? FACTORY_ADDRESS,
-      fee,
+      tickSpacing,
       tokenA,
       tokenB,
       initCodeHashManualOverride
