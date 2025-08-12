@@ -79,6 +79,11 @@ export interface CommonAddLiquidityOptions {
    * The optional permit parameters for spending token1
    */
   token1Permit?: PermitOptions
+
+  /**
+   * Rewards to be claimed from gauge if the position is being burned.
+   */
+  gaugeRewardTokens?: string[]
 }
 
 export type MintOptions = CommonAddLiquidityOptions & MintSpecificOptions
@@ -256,11 +261,19 @@ export abstract class NonfungiblePositionManager {
             amount0Min,
             amount1Min,
             recipient,
-            deadline,
+            deadline
           }
         ])
       )
     } else {
+      if (options.gaugeRewardTokens && options.gaugeRewardTokens.length > 0) {
+        calldatas.push(
+          NonfungiblePositionManager.INTERFACE.encodeFunctionData('getReward', [
+            toHex(options.tokenId),
+            options.gaugeRewardTokens
+          ])
+        )
+      }
       // increase
       calldatas.push(
         NonfungiblePositionManager.INTERFACE.encodeFunctionData('increaseLiquidity', [
@@ -386,6 +399,12 @@ export abstract class NonfungiblePositionManager {
       )
     }
 
+    if (options.gaugeRewardTokens && options.gaugeRewardTokens.length > 0) {
+      calldatas.push(
+        NonfungiblePositionManager.INTERFACE.encodeFunctionData('getReward', [tokenId, options.gaugeRewardTokens])
+      )
+    }
+
     // remove liquidity
     calldatas.push(
       NonfungiblePositionManager.INTERFACE.encodeFunctionData('decreaseLiquidity', [
@@ -416,11 +435,6 @@ export abstract class NonfungiblePositionManager {
 
     if (options.liquidityPercentage.equalTo(ONE)) {
       if (options.burnToken) {
-        if (options.gaugeRewardTokens && options.gaugeRewardTokens.length > 0) {
-          calldatas.push(
-            NonfungiblePositionManager.INTERFACE.encodeFunctionData('getReward', [tokenId, options.gaugeRewardTokens])
-          )
-        }
         calldatas.push(NonfungiblePositionManager.INTERFACE.encodeFunctionData('burn', [tokenId]))
       }
     } else {
