@@ -1,4 +1,3 @@
-# Ramses software
+# Ramses' SDK for CL
 
-This is a forked repository of Uniswap V3 SDK.
-Configured specifically for Ramses.
+Adapted and based off of Uniswap's sdk, improved to solve many front-end and UX issues that exist with concentrated liquidity.
