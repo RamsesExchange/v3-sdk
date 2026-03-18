@@ -1,5 +1,5 @@
 import { Token } from '@uniswap/sdk-core'
-import { FeeAmount } from '../constants'
+import { FeeAmount, TICK_SPACINGS } from '../constants'
 import { computePoolAddress } from './computePoolAddress'
 
 describe('#computePoolAddress', () => {
@@ -9,22 +9,22 @@ describe('#computePoolAddress', () => {
     const tokenB = new Token(1, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
     const result = computePoolAddress({
       factoryAddress,
-      fee: FeeAmount.LOW,
+      tickSpacing: TICK_SPACINGS[FeeAmount.LOW],
       tokenA,
       tokenB
     })
 
-    expect(result).toEqual('0x90B1b09A9715CaDbFD9331b3A7652B24BfBEfD32')
+    expect(result).toEqual('0xE6843dD76b942866E5d14104BE14dc069b0B4D36')
   })
 
-  it('should correctly compute the pool address', () => {
+  it('should give the same address regardless of token order', () => {
     const USDC = new Token(1, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 18, 'USDC', 'USD Coin')
     const DAI = new Token(1, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'DAI Stablecoin')
     let tokenA = USDC
     let tokenB = DAI
     const resultA = computePoolAddress({
       factoryAddress,
-      fee: FeeAmount.LOW,
+      tickSpacing: TICK_SPACINGS[FeeAmount.LOW],
       tokenA,
       tokenB
     })
@@ -34,7 +34,7 @@ describe('#computePoolAddress', () => {
     tokenB = USDC
     const resultB = computePoolAddress({
       factoryAddress,
-      fee: FeeAmount.LOW,
+      tickSpacing: TICK_SPACINGS[FeeAmount.LOW],
       tokenA,
       tokenB
     })

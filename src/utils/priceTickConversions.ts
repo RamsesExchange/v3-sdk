@@ -50,7 +50,6 @@ export function priceToClosestTick(price: Price<Token, Token>, isOneTickPosition
     }
 
     else  {
-    console.log('hi', tick)
     // Original logic
     if (sorted) {
       if (!price.lessThan(nextTickPrice)) {
